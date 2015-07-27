@@ -1,0 +1,877 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+<title>Emacs Lisp を書いてみたい人へ</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Yoshinari Nomura" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<link rel="stylesheet" type="text/css" href="pub/css/text.css" /><script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="index.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content">
+<h1 class="title">Emacs Lisp を書いてみたい人へ</h1>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+$(function() {
+  $("pre[id^=ans-]").each(function() {
+    var code = $(this);
+    var link = $('<a href="javascript:void(0);">toggle code</a>');
+    code.hide();
+    link.insertBefore(code);
+    link.on('click', function(e){code.toggle();});
+  });
+});
+/*]]>*///-->
+</script>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 準備 .emacs の設定をしよう</h2>
+<div class="outline-text-2" id="text-1">
+</div><div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1">.emacs の例</h3>
+<div class="outline-text-3" id="text-1-1">
+<p>
+<a href="dyn/init.el">init.el</a>
+</p>
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp" id="ans-init"><span class="linenr">  1: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">.emacs --- Emacs startup file.</span>
+<span class="linenr">  2: </span>
+<span class="linenr">  3: </span><span class="org-comment-delimiter">;; </span><span class="org-comment">Author:  Yoshinari Nomura</span>
+<span class="linenr">  4: </span><span class="org-comment-delimiter">;; </span><span class="org-comment">Created: 2010-01-14 13:59:02 JST</span>
+<span class="linenr">  5: </span><span class="org-comment-delimiter">;; </span><span class="org-comment">Revised Time-stamp: &lt;2015-07-26 23:33:24 JST&gt;</span>
+<span class="linenr">  6: </span>
+<span class="linenr">  7: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Commentary:</span>
+<span class="linenr">  8: </span>
+<span class="linenr">  9: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Code:</span>
+<span class="linenr"> 10: </span>
+<span class="linenr"> 11: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">For Debug</span>
+<span class="linenr"> 12: </span>
+<span class="linenr"> 13: </span><span class="org-comment-delimiter">;; </span><span class="org-comment">M-x toggle-debug-on-error</span>
+<span class="linenr"> 14: </span><span class="org-comment-delimiter">;; </span><span class="org-comment">(setq debug-on-error t)</span>
+<span class="linenr"> 15: </span>
+<span class="linenr"> 16: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Disable Bi-Directional Display</span>
+<span class="linenr"> 17: </span>
+<span class="linenr"> 18: </span>(setq-default
+<span class="linenr"> 19: </span> bidi-display-reordering nil
+<span class="linenr"> 20: </span> bidi-paragraph-direction 'left-to-right)
+<span class="linenr"> 21: </span>
+<span class="linenr"> 22: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Add Function(s) for Compatibility</span>
+<span class="linenr"> 23: </span>
+<span class="linenr"> 24: </span>(<span class="org-keyword">unless</span> (fboundp 'with-eval-after-load)
+<span class="linenr"> 25: </span>  (<span class="org-keyword">defmacro</span> <span class="org-function-name">with-eval-after-load</span> (file <span class="org-type">&amp;rest</span> body)
+<span class="linenr"> 26: </span>    `(eval-after-load ,file
+<span class="linenr"> 27: </span>       `(funcall (function ,(<span class="org-keyword">lambda</span> () ,@body))))))
+<span class="linenr"> 28: </span>
+<span class="linenr"> 29: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Basic Keybinds</span>
+<span class="linenr"> 30: </span>
+<span class="linenr"> 31: </span><span class="org-comment-delimiter">;; </span><span class="org-comment">C-h is BS, C-d is DEL</span>
+<span class="linenr"> 32: </span>(load-library <span class="org-string">"term/bobcat"</span>)
+<span class="linenr"> 33: </span>(terminal-init-bobcat)
+<span class="linenr"> 34: </span>(setq normal-erase-is-backspace nil)
+<span class="linenr"> 35: </span>
+<span class="linenr"> 36: </span><span class="org-comment-delimiter">;; </span><span class="org-comment">C-zh to help</span>
+<span class="linenr"> 37: </span>(global-unset-key <span class="org-string">"\C-z"</span>)
+<span class="linenr"> 38: </span>(global-set-key <span class="org-string">"\C-zh"</span> 'help)
+<span class="linenr"> 39: </span>(global-set-key <span class="org-string">"\C-z\C-z"</span> 'suspend-emacs)
+<span class="linenr"> 40: </span>
+<span class="linenr"> 41: </span><span class="org-comment-delimiter">;; </span><span class="org-comment">SPC always acts as complation</span>
+<span class="linenr"> 42: </span>
+<span class="linenr"> 43: </span><span class="org-comment-delimiter">;; </span><span class="org-comment">Space works as completion-key in minibuffer</span>
+<span class="linenr"> 44: </span>(define-key minibuffer-local-filename-completion-map
+<span class="linenr"> 45: </span>  <span class="org-string">" "</span> 'minibuffer-complete-word)
+<span class="linenr"> 46: </span>
+<span class="linenr"> 47: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Load Path and Directory Settings</span>
+<span class="linenr"> 48: </span>
+<span class="linenr"> 49: </span>(setenv <span class="org-string">"TEXINPUTS"</span> (format <span class="org-string">"sty:%s/sys/lib/TeXsty:"</span> (getenv <span class="org-string">"HOME"</span>)))
+<span class="linenr"> 50: </span>
+<span class="linenr"> 51: </span>(<span class="org-keyword">defvar</span> <span class="org-variable-name">emacs-exec-path</span>
+<span class="linenr"> 52: </span>  '(<span class="org-string">"~/sys/lib/elisp/mew/current/bin"</span>
+<span class="linenr"> 53: </span>    <span class="org-string">"~/sys/lib/elisp/migemo/bin"</span>))
+<span class="linenr"> 54: </span>
+<span class="linenr"> 55: </span>(<span class="org-keyword">defvar</span> <span class="org-variable-name">shell-exec-path</span>
+<span class="linenr"> 56: </span>  (split-string
+<span class="linenr"> 57: </span>   (<span class="org-keyword">with-temp-buffer</span>
+<span class="linenr"> 58: </span>     (call-process
+<span class="linenr"> 59: </span>      (getenv <span class="org-string">"SHELL"</span>) nil '(t nil) nil <span class="org-string">"-c"</span> <span class="org-string">"echo -n $PATH"</span>)
+<span class="linenr"> 60: </span>     (buffer-substring-no-properties (point-min) (point-max)))
+<span class="linenr"> 61: </span>   <span class="org-string">":"</span>))
+<span class="linenr"> 62: </span>
+<span class="linenr"> 63: </span><span class="org-comment-delimiter">;; </span><span class="org-comment">set exec-path from shell-exec-path and emacs-exec-path</span>
+<span class="linenr"> 64: </span>(<span class="org-keyword">dolist</span> (ent (reverse (append emacs-exec-path shell-exec-path)))
+<span class="linenr"> 65: </span>  (<span class="org-keyword">let</span> ((dir (expand-file-name ent)))
+<span class="linenr"> 66: </span>    (<span class="org-keyword">when</span> (and (file-exists-p dir) (not (member dir exec-path)))
+<span class="linenr"> 67: </span>      (setq exec-path (cons dir exec-path))
+<span class="linenr"> 68: </span>      (setenv <span class="org-string">"PATH"</span> (concat dir <span class="org-string">":"</span> (getenv <span class="org-string">"PATH"</span>))))))
+<span class="linenr"> 69: </span>
+<span class="linenr"> 70: </span>(<span class="org-keyword">defun</span> <span class="org-function-name">hostname</span> ()
+<span class="linenr"> 71: </span>  <span class="org-doc">"Short hostname."</span>
+<span class="linenr"> 72: </span>  (car (split-string (system-name) <span class="org-string">"\\."</span>)))
+<span class="linenr"> 73: </span>
+<span class="linenr"> 74: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Cask Package Manager</span>
+<span class="linenr"> 75: </span>
+<span class="linenr"> 76: </span>(<span class="org-keyword">require</span> '<span class="org-constant">cask</span> <span class="org-string">"~/.cask/cask.el"</span>)
+<span class="linenr"> 77: </span>(cask-initialize)
+<span class="linenr"> 78: </span>
+<span class="linenr"> 79: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Enable Commands</span>
+<span class="linenr"> 80: </span>
+<span class="linenr"> 81: </span>(put 'downcase-region 'disabled nil)
+<span class="linenr"> 82: </span>(put 'upcase-region 'disabled nil)
+<span class="linenr"> 83: </span>(put 'narrow-to-page 'disabled nil)
+<span class="linenr"> 84: </span>(put 'narrow-to-region 'disabled nil)
+<span class="linenr"> 85: </span>
+<span class="linenr"> 86: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Buffer-name Uniquify</span>
+<span class="linenr"> 87: </span>
+<span class="linenr"> 88: </span>(<span class="org-keyword">require</span> '<span class="org-constant">uniquify</span>)
+<span class="linenr"> 89: </span>(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
+<span class="linenr"> 90: </span>
+<span class="linenr"> 91: </span>
+<span class="linenr"> 92: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">search</span>
+<span class="linenr"> 93: </span>
+<span class="linenr"> 94: </span>(setq isearch-case-fold-search t)
+<span class="linenr"> 95: </span>
+<span class="linenr"> 96: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">global mode</span>
+<span class="linenr"> 97: </span>
+<span class="linenr"> 98: </span>(setq transient-mark-mode nil)
+<span class="linenr"> 99: </span>
+<span class="linenr">100: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Emacs Server</span>
+<span class="linenr">101: </span>
+<span class="linenr">102: </span>(<span class="org-keyword">require</span> '<span class="org-constant">server</span>)
+<span class="linenr">103: </span>(<span class="org-keyword">unless</span> (server-running-p)
+<span class="linenr">104: </span>  (server-start))
+<span class="linenr">105: </span>
+<span class="linenr">106: </span>
+<span class="linenr">107: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">eldoc</span>
+<span class="linenr">108: </span>
+<span class="linenr">109: </span>(add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
+<span class="linenr">110: </span>(add-hook 'lisp-interaction-mode-hook 'eldoc-mode)
+<span class="linenr">111: </span>(add-hook 'ielm-mode-hook 'eldoc-mode)
+<span class="linenr">112: </span>(add-hook 'eval-expression-minibuffer-setup-hook 'eldoc-mode)
+<span class="linenr">113: </span>
+<span class="linenr">114: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Load individual init files</span>
+<span class="linenr">115: </span>
+<span class="linenr">116: </span><span class="org-comment-delimiter">;; </span><span class="org-comment">Prepend all subdirectories of `</span><span class="org-comment"><span class="org-constant">default-directory</span></span><span class="org-comment">' to `</span><span class="org-comment"><span class="org-constant">load-path</span></span><span class="org-comment">'.</span>
+<span class="linenr">117: </span>
+<span class="linenr">118: </span>(<span class="org-keyword">let</span> ((default-directory <span class="org-string">"~/sys/lib/elisp"</span>))
+<span class="linenr">119: </span>  (<span class="org-keyword">if</span> (file-directory-p default-directory)
+<span class="linenr">120: </span>      (setq load-path
+<span class="linenr">121: </span>            (append
+<span class="linenr">122: </span>             (<span class="org-keyword">let</span> ((load-path (copy-sequence load-path))) <span class="org-comment-delimiter">;; </span><span class="org-comment">Shadow</span>
+<span class="linenr">123: </span>               (normal-top-level-add-subdirs-to-load-path))
+<span class="linenr">124: </span>             load-path))))
+<span class="linenr">125: </span>
+<span class="linenr">126: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Load all files in `</span><span class="org-comment"><span class="org-constant">private-init-directory</span></span><span class="org-comment">'.</span>
+<span class="linenr">127: </span>
+<span class="linenr">128: </span>(<span class="org-keyword">defvar</span> <span class="org-variable-name">private-init-directory</span>
+<span class="linenr">129: </span>  <span class="org-string">"~/sys/rc/elisp-init/"</span>
+<span class="linenr">130: </span>  <span class="org-doc">"My private init directory."</span>)
+<span class="linenr">131: </span>
+<span class="linenr">132: </span>(<span class="org-keyword">defvar</span> <span class="org-variable-name">private-load-path-top</span> <span class="org-string">"~/sys/lib/elisp/"</span>)
+<span class="linenr">133: </span>
+<span class="linenr">134: </span>(<span class="org-keyword">defun</span> <span class="org-function-name">private-load-path</span> (relative-path)
+<span class="linenr">135: </span>  <span class="org-doc">"Calculate absolute path of RELATIVE-PATH from `</span><span class="org-doc"><span class="org-constant">private-load-path-top</span></span><span class="org-doc">'."</span>
+<span class="linenr">136: </span>  (expand-file-name relative-path private-load-path-top))
+<span class="linenr">137: </span>
+<span class="linenr">138: </span>(<span class="org-keyword">defun</span> <span class="org-function-name">add-private-load-path</span> (relative-path)
+<span class="linenr">139: </span>  <span class="org-doc">"Add RELATIVE-PATH to `</span><span class="org-doc"><span class="org-constant">load-path</span></span><span class="org-doc">' as a relative path from `</span><span class="org-doc"><span class="org-constant">private-load-path-top</span></span><span class="org-doc">'."</span>
+<span class="linenr">140: </span>  (setq load-path (cons (private-load-path relative-path) load-path)))
+<span class="linenr">141: </span>
+<span class="linenr">142: </span>(mapc 'load (directory-files private-init-directory t <span class="org-string">"^[0-9].*.elc?$"</span>))
+<span class="linenr">143: </span>
+<span class="linenr">144: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Load Custom file</span>
+<span class="linenr">145: </span>
+<span class="linenr">146: </span>(setq custom-file
+<span class="linenr">147: </span>      (expand-file-name
+<span class="linenr">148: </span>       <span class="org-string">"XX-emacs-custom.el"</span> private-init-directory))
+<span class="linenr">149: </span>(load custom-file)
+<span class="linenr">150: </span>
+<span class="linenr">151: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Restore frame configuration</span>
+<span class="linenr">152: </span>
+<span class="linenr">153: </span>(<span class="org-keyword">if</span> (fboundp 'load-frame-configuration)
+<span class="linenr">154: </span>    (load-frame-configuration))
+<span class="linenr">155: </span>
+<span class="linenr">156: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Done</span>
+<span class="linenr">157: </span>
+<span class="linenr">158: </span>(message <span class="org-string">"Done."</span>)
+<span class="linenr">159: </span>(<span class="org-keyword">provide</span> '<span class="org-constant">.emacs</span>)
+<span class="linenr">160: </span>
+<span class="linenr">161: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Local Variables&#58;</span>
+<span class="linenr">162: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">mode: emacs-lisp</span>
+<span class="linenr">163: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">time-stamp-active: t</span>
+<span class="linenr">164: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">End:</span>
+<span class="linenr">165: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">.emacs ends here</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2" class="outline-3">
+<h3 id="sec-1-2">キーバインド</h3>
+<div class="outline-text-3" id="text-1-2">
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span class="org-comment-delimiter">;; </span><span class="org-comment">C-h is BS, C-d is DEL</span>
+(load-library <span class="org-string">"term/bobcat"</span>)
+(terminal-init-bobcat)
+(setq normal-erase-is-backspace nil)
+
+<span class="org-comment-delimiter">;; </span><span class="org-comment">C-zh to help</span>
+(global-unset-key <span class="org-string">"\C-z"</span>)
+(global-set-key <span class="org-string">"\C-zh"</span> 'help)
+(global-set-key <span class="org-string">"\C-z\C-z"</span> 'suspend-emacs)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3" class="outline-3">
+<h3 id="sec-1-3">Emacs Server</h3>
+<div class="outline-text-3" id="text-1-3">
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp">(<span class="org-keyword">require</span> '<span class="org-constant">server</span>)
+
+(<span class="org-keyword">unless</span> (server-running-p)
+  (server-start))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-4" class="outline-3">
+<h3 id="sec-1-4">cask (package management)</h3>
+<div class="outline-text-3" id="text-1-4">
+<ul class="org-ul">
+<li><a href="https://github.com/cask/cask">https://github.com/cask/cask</a>
+</li>
+<li><a href="http://cask.readthedocs.org">http://cask.readthedocs.org</a>
+</li>
+</ul>
+
+<p>
+In your terminal:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">curl -fsSL https://raw.githubusercontent.com/cask/cask/master/go | python
+</pre>
+</div>
+
+<p>
+Add to your .zshenv:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-shell-script"><span class="org-variable-name">path</span>=(~/.cask/bin $<span class="org-variable-name">path</span>)
+</pre>
+</div>
+
+<p>
+Add to your .emacs:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp">(<span class="org-keyword">require</span> '<span class="org-constant">cask</span> <span class="org-string">"~/.cask/cask.el"</span>)
+(cask-initialize)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-5" class="outline-3">
+<h3 id="sec-1-5">ヘルプ関連</h3>
+<div class="outline-text-3" id="text-1-5">
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp">(add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
+(add-hook 'lisp-interaction-mode-hook 'eldoc-mode)
+(add-hook 'ielm-mode-hook 'eldoc-mode)
+(add-hook 'eval-expression-minibuffer-setup-hook 'eldoc-mode)
+(define-key goto-map <span class="org-string">"f"</span> 'find-function)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-6" class="outline-3">
+<h3 id="sec-1-6">便利そうな機能のおさらい</h3>
+<div class="outline-text-3" id="text-1-6">
+<ul class="org-ul">
+<li>M-x toggle-debug-on-error
+</li>
+<li>M-x apropos
+</li>
+<li>M-x find-function
+</li>
+<li>M-x describe-{bindings,function,variable,key}
+</li>
+<li>M-x kmacro-start-macro <code>C-x(</code>
+</li>
+<li>M-x kmacro-{start,end} <code>C-x(</code>, <code>C-x)</code>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Emacs Lisp 入門</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+この2つを参考に自学してください
+</p>
+<ol class="org-ol">
+<li><a href="http://yohshiy.blog.fc2.com/blog-entry-265.html">環境設定のための Emacs Lisp 入門</a>
+</li>
+<li><a href="http://www.math.s.chiba-u.ac.jp/~matsu/lisp/emacs-lisp-intro-jp_toc.html">Programming in Emacs Lisp</a>
+</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Emacs Lisp で作る前に</h2>
+<div class="outline-text-2" id="text-3">
+<ol class="org-ol">
+<li>普通の Emacs の使い方をマスタしよう
+<ul class="org-ul">
+<li>Emacs をある程度使いこなせないなら，Emacs Lisp を書く理由がない
+</li>
+<li>標準機能の改良から初めよう (tetris のキーバインドが気に入らない)
+</li>
+</ul>
+</li>
+
+<li>チュートリアルを終えたら，我慢してマニュアルを一通り読もう
+<ul class="org-ul">
+<li><a href="http://www.gnu.org/software/emacs/manual/elisp.html">http://www.gnu.org/software/emacs/manual/elisp.html</a>
+</li>
+<li><a href="http://www.bookshelf.jp/texi/elisp-manual/21-2-8/jp/elisp.html">http://www.bookshelf.jp/texi/elisp-manual/21-2-8/jp/elisp.html</a> (邦訳)
+</li>
+</ul>
+<p>
+目を通しておくだけで違う．週末の午後を2日ぐら使って一通り読むぐらいのイメージ
+</p>
+</li>
+
+<li>何でも Emacs Lisp だけでやろうとしないでいいよ
+<ul class="org-ul">
+<li>Shell script 書いた方が早くないですか?
+</li>
+
+<li>他のプロセスやサービスのフロントエンドとして Emacs を使う
+<ul class="org-ul">
+<li>ispell, flycheck, mew, mhc, jay, grammer.el
+</li>
+</ul>
+</li>
+
+<li>コマンドラインから emacs server を叩く
+<pre class="example">
+emacsclient -q -e 'emacs-major-version'
+</pre>
+</li>
+</ul>
+</li>
+
+<li>Emacs をむやみに終了しないようにするといいよ
+<ul class="org-ul">
+<li>起動に時間がかかる
+</li>
+<li>各種履歴，mark位置，バッファ一覧，scratch等々が消えると面倒
+</li>
+</ul>
+</li>
+
+<li>buffer を1つの環境(スコープ，記憶領域，ワークスペース)として利用する
+<ul class="org-ul">
+<li>ファイルに結び付かないバッファを利用する
+</li>
+<li>Emacs の挙動を変える変数は，buffer-local のスコープを持つことが多い
+<ul class="org-ul">
+<li>例: truncate-lines
+</li>
+</ul>
+</li>
+<li><b>モード</b> という考え方は，バッファ単位に結び付く
+</li>
+<li>複雑な文字列操作などの場合に裏で一時的なバッファを開いてそこで作業する <code>with-temp-buffer</code>
+</li>
+</ul>
+</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> 小さな elisp 関数の例</h2>
+<div class="outline-text-2" id="text-4">
+</div><div id="outline-container-sec-4-1" class="outline-3">
+<h3 id="sec-4-1">コード</h3>
+<div class="outline-text-3" id="text-4-1">
+<p>
+<a href="dyn/my-funcs.el">my-funcs.el</a>
+</p>
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp" id="ans-my-funcs"><span class="linenr">  1: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">my-functions.el --- My private functions.</span>
+<span class="linenr">  2: </span>
+<span class="linenr">  3: </span><span class="org-comment-delimiter">;; </span><span class="org-comment">Author:  Yoshinari Nomura</span>
+<span class="linenr">  4: </span><span class="org-comment-delimiter">;; </span><span class="org-comment">Created: 2005-03-27</span>
+<span class="linenr">  5: </span>
+<span class="linenr">  6: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Commentary:</span>
+<span class="linenr">  7: </span>
+<span class="linenr">  8: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Code:</span>
+<span class="linenr">  9: </span>
+<span class="linenr"> 10: </span><span class="org-comment-delimiter">;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;</span>
+<span class="linenr"> 11: </span><span class="org-comment-delimiter">;; </span><span class="org-comment">TODO, ADDRESS, MEMO</span>
+<span class="linenr"> 12: </span>
+<span class="linenr"> 13: </span>(<span class="org-keyword">defvar</span> <span class="org-variable-name">mydocument-path</span> (expand-file-name <span class="org-string">"~/prj/private/"</span>))
+<span class="linenr"> 14: </span>
+<span class="linenr"> 15: </span>(<span class="org-keyword">defvar</span> <span class="org-variable-name">todo-file-name</span> <span class="org-string">"org/TODO.org"</span>)
+<span class="linenr"> 16: </span>(<span class="org-keyword">defvar</span> <span class="org-variable-name">memo-file-name</span> <span class="org-string">"MEMO.org"</span>)
+<span class="linenr"> 17: </span>(<span class="org-keyword">defvar</span> <span class="org-variable-name">address-file-name</span> <span class="org-string">"ADDRESS.org"</span>)
+<span class="linenr"> 18: </span>
+<span class="linenr"> 19: </span>(<span class="org-keyword">defun</span> <span class="org-function-name">find-mydoc-file-other-window</span> (filename)
+<span class="linenr"> 20: </span>  (find-file-other-window
+<span class="linenr"> 21: </span>   (concat mydocument-path filename))
+<span class="linenr"> 22: </span>  (message <span class="org-string">""</span>))
+<span class="linenr"> 23: </span>
+<span class="linenr"> 24: </span>(<span class="org-keyword">defun</span> <span class="org-function-name">todo</span> ()
+<span class="linenr"> 25: </span>  (interactive)
+<span class="linenr"> 26: </span>  (find-mydoc-file-other-window todo-file-name))
+<span class="linenr"> 27: </span>
+<span class="linenr"> 28: </span>(<span class="org-keyword">defun</span> <span class="org-function-name">address</span> ()
+<span class="linenr"> 29: </span>  (interactive)
+<span class="linenr"> 30: </span>  (find-mydoc-file-other-window address-file-name))
+<span class="linenr"> 31: </span>
+<span class="linenr"> 32: </span>(<span class="org-keyword">defun</span> <span class="org-function-name">memo</span> ()
+<span class="linenr"> 33: </span>  (interactive)
+<span class="linenr"> 34: </span>  (find-mydoc-file-other-window memo-file-name))
+<span class="linenr"> 35: </span>
+<span class="linenr"> 36: </span><span class="org-comment-delimiter">;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;</span>
+<span class="linenr"> 37: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Numbering</span>
+<span class="linenr"> 38: </span>
+<span class="linenr"> 39: </span>(<span class="org-keyword">defvar</span> <span class="org-variable-name">numbering-default-string</span> <span class="org-string">"^[\t &#12288;]*(</span><span class="org-string"><span class="org-regexp-grouping-backslash">\\</span></span><span class="org-string"><span class="org-regexp-grouping-construct">(</span></span><span class="org-string"> *[0-9]+</span><span class="org-string"><span class="org-regexp-grouping-backslash">\\</span></span><span class="org-string"><span class="org-regexp-grouping-construct">)</span></span><span class="org-string">)"</span>)
+<span class="linenr"> 40: </span>
+<span class="linenr"> 41: </span>(<span class="org-keyword">defun</span> <span class="org-function-name">numbering</span> (<span class="org-type">&amp;optional</span> arg)
+<span class="linenr"> 42: </span>  (interactive)
+<span class="linenr"> 43: </span>  (<span class="org-keyword">let</span> ((n 1))
+<span class="linenr"> 44: </span>    (<span class="org-keyword">save-excursion</span>
+<span class="linenr"> 45: </span>      (setq numbering-default-string
+<span class="linenr"> 46: </span>            (read-from-minibuffer (format <span class="org-string">"Numbering format (%s):"</span>
+<span class="linenr"> 47: </span>                                          numbering-default-string)
+<span class="linenr"> 48: </span>                                  numbering-default-string))
+<span class="linenr"> 49: </span>      (goto-char (point-min))
+<span class="linenr"> 50: </span>      (<span class="org-keyword">while</span> (re-search-forward numbering-default-string nil t)
+<span class="linenr"> 51: </span>        (replace-match (format <span class="org-string">"%02d"</span> n) nil nil nil 1)
+<span class="linenr"> 52: </span>        (setq n (1+ n)))
+<span class="linenr"> 53: </span>      )))
+<span class="linenr"> 54: </span>
+<span class="linenr"> 55: </span>
+<span class="linenr"> 56: </span><span class="org-comment-delimiter">;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;</span>
+<span class="linenr"> 57: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Sum up numbers in a string, region or rectangle.</span>
+<span class="linenr"> 58: </span>
+<span class="linenr"> 59: </span>(<span class="org-keyword">defun</span> <span class="org-function-name">sum-string</span> (string)
+<span class="linenr"> 60: </span>  (<span class="org-keyword">let</span> ((str <span class="org-string">""</span>) (sum 0))
+<span class="linenr"> 61: </span>    (mapc
+<span class="linenr"> 62: </span>     (<span class="org-keyword">lambda</span> (c)
+<span class="linenr"> 63: </span>       (<span class="org-keyword">cond</span>
+<span class="linenr"> 64: </span>        ((char-equal c ?,)) <span class="org-comment-delimiter">;; </span><span class="org-comment">skip comma</span>
+<span class="linenr"> 65: </span>        ((string-match <span class="org-string">"[0-9.+-]"</span> (char-to-string c))
+<span class="linenr"> 66: </span>         (setq str (format <span class="org-string">"%s%c"</span> str c)))
+<span class="linenr"> 67: </span>        (t (setq sum (+ sum (string-to-number str)) str <span class="org-string">""</span>))))
+<span class="linenr"> 68: </span>     (concat string <span class="org-string">"X"</span>))
+<span class="linenr"> 69: </span>    sum))
+<span class="linenr"> 70: </span>
+<span class="linenr"> 71: </span>(<span class="org-keyword">defvar</span> <span class="org-variable-name">sum-money-regexp</span> <span class="org-string">"</span><span class="org-string"><span class="org-regexp-grouping-backslash">\\</span></span><span class="org-string"><span class="org-regexp-grouping-construct">(</span></span><span class="org-string">[0-9,]+</span><span class="org-string"><span class="org-regexp-grouping-backslash">\\</span></span><span class="org-string"><span class="org-regexp-grouping-construct">)</span></span><span class="org-string">&#20870;"</span>)
+<span class="linenr"> 72: </span>
+<span class="linenr"> 73: </span>(<span class="org-keyword">defun</span> <span class="org-function-name">sum-string-to-int</span> (string)
+<span class="linenr"> 74: </span>  (sum-string string))
+<span class="linenr"> 75: </span>
+<span class="linenr"> 76: </span>(<span class="org-keyword">defun</span> <span class="org-function-name">sum-money-in-region</span> (p1 p2)
+<span class="linenr"> 77: </span>  (interactive <span class="org-string">"r"</span>)
+<span class="linenr"> 78: </span>  (<span class="org-keyword">let</span> ((sum 0))
+<span class="linenr"> 79: </span>    (<span class="org-keyword">save-excursion</span>
+<span class="linenr"> 80: </span>      (goto-char p1)
+<span class="linenr"> 81: </span>      (<span class="org-keyword">save-match-data</span>
+<span class="linenr"> 82: </span>        (<span class="org-keyword">while</span> (re-search-forward sum-money-regexp p2 t)
+<span class="linenr"> 83: </span>          (setq sum (+ sum (sum-string-to-int (match-string 1)))))))
+<span class="linenr"> 84: </span>    (insert (format <span class="org-string">"[&#21512;&#35336;: %d]"</span> sum))))
+<span class="linenr"> 85: </span>
+<span class="linenr"> 86: </span>(<span class="org-keyword">defun</span> <span class="org-function-name">sum-region</span> (p1 p2)
+<span class="linenr"> 87: </span>  (interactive <span class="org-string">"r"</span>)
+<span class="linenr"> 88: </span>  (insert (format <span class="org-string">"[&#21512;&#35336;: %d]"</span> (sum-string (buffer-substring p1 p2)))))
+<span class="linenr"> 89: </span>
+<span class="linenr"> 90: </span>(<span class="org-keyword">defun</span> <span class="org-function-name">sum-rectangle</span> (p1 p2)
+<span class="linenr"> 91: </span>  (interactive <span class="org-string">"r"</span>)
+<span class="linenr"> 92: </span>  (<span class="org-keyword">let</span> ((sum 0) (rect (extract-rectangle p1 p2)))
+<span class="linenr"> 93: </span>    (mapc (<span class="org-keyword">lambda</span> (s) (setq sum (+ sum (sum-string s)))) rect)
+<span class="linenr"> 94: </span>    (insert (format <span class="org-string">"[&#21512;&#35336;: %d]"</span> sum))))
+<span class="linenr"> 95: </span>
+<span class="linenr"> 96: </span><span class="org-comment-delimiter">;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;</span>
+<span class="linenr"> 97: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Time and Date.</span>
+<span class="linenr"> 98: </span>
+<span class="linenr"> 99: </span>(<span class="org-keyword">defun</span> <span class="org-function-name">make-timetable</span> (<span class="org-type">&amp;optional</span> duration-minutes interval-minutes)
+<span class="linenr">100: </span>  (interactive)
+<span class="linenr">101: </span>  (<span class="org-keyword">let</span> ((time-start nil) (time-end nil) hh mm)
+<span class="linenr">102: </span>    (setq duration-minutes
+<span class="linenr">103: </span>          (or duration-minutes
+<span class="linenr">104: </span>              (string-to-number (read-from-minibuffer <span class="org-string">"Frequency (minute): "</span>))))
+<span class="linenr">105: </span>    (setq interval-minutes
+<span class="linenr">106: </span>          (or interval-minutes
+<span class="linenr">107: </span>              (string-to-number (read-from-minibuffer <span class="org-string">"Interval (minute): "</span>))))
+<span class="linenr">108: </span>
+<span class="linenr">109: </span>    (<span class="org-keyword">while</span> (looking-at <span class="org-string">"</span><span class="org-string"><span class="org-regexp-grouping-backslash">\\</span></span><span class="org-string"><span class="org-regexp-grouping-construct">(</span></span><span class="org-string">[0-9]+</span><span class="org-string"><span class="org-regexp-grouping-backslash">\\</span></span><span class="org-string"><span class="org-regexp-grouping-construct">)</span></span><span class="org-string">:</span><span class="org-string"><span class="org-regexp-grouping-backslash">\\</span></span><span class="org-string"><span class="org-regexp-grouping-construct">(</span></span><span class="org-string">[0-9]+</span><span class="org-string"><span class="org-regexp-grouping-backslash">\\</span></span><span class="org-string"><span class="org-regexp-grouping-construct">)</span></span><span class="org-string"><span class="org-regexp-grouping-backslash">\\</span></span><span class="org-string"><span class="org-regexp-grouping-construct">(</span></span><span class="org-string"> *- *[0-9]+:[0-9]+</span><span class="org-string"><span class="org-regexp-grouping-backslash">\\</span></span><span class="org-string"><span class="org-regexp-grouping-construct">)</span></span><span class="org-string">?"</span>)
+<span class="linenr">110: </span>      (setq hh (string-to-number
+<span class="linenr">111: </span>                (buffer-substring (match-beginning 1) (match-end 1)))
+<span class="linenr">112: </span>            mm (string-to-number
+<span class="linenr">113: </span>                (buffer-substring (match-beginning 2) (match-end 2))))
+<span class="linenr">114: </span>      (delete-region (match-beginning 0) (match-end 0))
+<span class="linenr">115: </span>
+<span class="linenr">116: </span>      (setq time-start
+<span class="linenr">117: </span>            (<span class="org-keyword">if</span> time-start
+<span class="linenr">118: </span>                (+ time-start duration-minutes interval-minutes)
+<span class="linenr">119: </span>              (+ (* hh 60) mm)))
+<span class="linenr">120: </span>      (setq time-end (+ time-start duration-minutes))
+<span class="linenr">121: </span>      (<span class="org-keyword">save-excursion</span>
+<span class="linenr">122: </span>        (insert (format <span class="org-string">"%02d:%02d-%02d:%02d"</span>
+<span class="linenr">123: </span>                        (/ time-start 60) (% time-start 60)
+<span class="linenr">124: </span>                        (/ time-end 60) (% time-end 60))))
+<span class="linenr">125: </span>      (next-line 1))))
+<span class="linenr">126: </span>
+<span class="linenr">127: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">Local Variables&#58;</span>
+<span class="linenr">128: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">mode: emacs-lisp</span>
+<span class="linenr">129: </span><span class="org-comment-delimiter">;;; </span><span class="org-comment">End:</span>
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-sec-4-2" class="outline-3">
+<h3 id="sec-4-2">todo, address, memo</h3>
+<div class="outline-text-3" id="text-4-2">
+<p>
+特定のディレクトリにある特定のファイルを開くだけの単純な関数である．
+常に書き足したり参照するファイルがあり，find-file するのが面倒な場合に重宝する．
+path を制御する変数は以下の通り:
+</p>
+
+<dl class="org-dl">
+<dt> mydocument-path </dt><dd>一連のファイルを置いてあるディレクトリ．デフォルトは "~/prj/private/"
+</dd>
+<dt> todo-file-name, memo-file-name, address-file-name </dt><dd>それぞれのファイル名．デフォルトは、"TODO", "MEMO", "ADDRESS"
+</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-sec-4-3" class="outline-3">
+<h3 id="sec-4-3">sum-rectangle, sum-region</h3>
+<div class="outline-text-3" id="text-4-3">
+<p>
+あるリージョンに入っている数の合計を計算して，バッファに挿入する関数．
+</p>
+
+<pre class="example">
+     リンゴ  100
+     スイカ  200
+     ミカン  300
+</pre>
+
+<p>
+のようなバッファで、1 の所にマークを付けて，300 の後ろにポインタを置く．
+そこで， <code>M-x sum-rectangle</code> を実行すると，[合計: 600] を挿入する．
+<code>sum-region</code> は，矩形ではなく，リージョンについて，同様の事を行う．
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-4-4" class="outline-3">
+<h3 id="sec-4-4">make-timetable</h3>
+<div class="outline-text-3" id="text-4-4">
+<p>
+発表会の準備をする場合，時間を計算しながらタイムテーブルを書くことがよくある．
+たとえば，以下のようなテーブルである．
+</p>
+
+<pre class="example">
+14:00-14:40 発表1 (D1)
+14:40-15:20 発表2 (D1)
+
+15:20-15:45 発表3 (M2)
+15:45-16:10 発表4 (M2)
+16:10-16:35 発表5 (M2)
+16:35-17:00 発表6 (M2)
+</pre>
+
+<p>
+人数や順番の変更，1人当りの時間が変更されると，再度計算が必要になる．
+これは，面倒なだけでなく，間違いが発生する原因になる．
+</p>
+
+<p>
+M2 の持ち時間が、20分に変更になったとしよう．
+<b>15:20</b> の <b>1</b> の上にポインタを置いて， <code>M-x make-timetable</code> を叩く．
+<code>Frequency:</code> と <code>Interval:</code> 聞かれるので，20 と 0 と答えると， M2 の時間が
+</p>
+
+<pre class="example">
+15:20-15:40 発表3 (M2)
+15:40-16:00 発表4 (M2)
+16:00-16:20 発表5 (M2)
+16:20-16:40 発表6 (M2)
+</pre>
+
+<p>
+のように書換えられる．開始時間を変えたければ，
+15:20 をあらかじめ書換えておけばいい．Interval を指定すると，発表間にその分のギャップを入れられる．
+</p>
+
+<p>
+最初にテーブルを作るときは，開始時間だけ埋めて，あとは 00:00 とでもしておけばよい．
+上の例では，「D1」の後に空行を挿入してある．
+これは，D1の時間だけを書換えたいのに M2 まで変わってしまわないようにするためである．
+</p>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> (番外) セルの話</h2>
+<div class="outline-text-2" id="text-5">
+</div><div id="outline-container-sec-5-1" class="outline-3">
+<h3 id="sec-5-1">(cons 'a 'b) と (cons 'a '(b)) の違いは何か</h3>
+<div class="outline-text-3" id="text-5-1">
+<p>
+<code>[ptr1 . ptr2]</code> の形をセルという． <code>(cons x y)</code> とは，新たなセルを1つ作って， <code>ptr1</code> を <code>x</code> に <code>ptr2</code> を <code>y</code> に向けること．
+</p>
+
+<pre class="example">
+1. (cons 'a 'b):    [ptr1 . ptr2] -&gt; b
+                      |
+                      a
+
+
+2. (cons 'a '(b)):  [ptr1 . ptr2] -&gt; [pt1 . ptr2] -&gt; nil
+                      |                |
+                      a                b
+
+3. '(b):            [ptr1 . ptr2] -&gt; nil
+                      |
+                      b
+</pre>
+
+<p>
+1 は単に 2つをオブジェクトを格納する二股ポインタ． <code>(a . b)</code> と表記する．
+2 はリスト構造を持っている． <code>(a b)</code> と表記する．
+<code>ptr1</code> の指すオブジェクトを <code>car</code>, <code>ptr2</code> の指すオブジェクト cdr と呼ぶ．
+<code>ptr</code> が指す先がセルでないとき，たとえば <code>x</code> や <code>1</code> のようなとき，<code>ptr1</code> は，atom であるという．
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-5-2" class="outline-3">
+<h3 id="sec-5-2">セルの操作の図解</h3>
+<div class="outline-text-3" id="text-5-2">
+</div><div id="outline-container-sec-5-2-1" class="outline-4">
+<h4 id="sec-5-2-1">前に足す</h4>
+<div class="outline-text-4" id="text-5-2-1">
+<pre class="example">
+(setq xxx '(a b c))
+(setq yyy (cons 'x xxx)) ;; セルを1つ足して cdr を xxx に
+
+このときのオブジェクトの様子:
+               xxx
+                |
+                v
+yyy -&gt; [x . -&gt;] [a . -&gt;] [b . -&gt;] [c . nil]
+
+注意: cons cell 中に直接 x が入っているように略記している．
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-5-2-2" class="outline-4">
+<h4 id="sec-5-2-2">途中をいじる</h4>
+<div class="outline-text-4" id="text-5-2-2">
+<pre class="example">
+(setcar (nthcdr 2 xxx) 'x)  ;; xxxリストの2番目のcarをxに変える
+
+xxx -&gt; [a . -&gt;] [b . -&gt;] [x . nil]
+          0        1        2
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-5-2-3" class="outline-4">
+<h4 id="sec-5-2-3">後に足す</h4>
+<div class="outline-text-4" id="text-5-2-3">
+<pre class="example">
+(setcdr (nthcdr 2 xxx) (cons 'y nil)) ;; セルを1つ足して2のcdrを
+                                      ;; それに向ける
+
+xxx -&gt; [a . -&gt;] [b . -&gt;] [c . -&gt;] [y . nil]
+          0        1        2
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-5-2-4" class="outline-4">
+<h4 id="sec-5-2-4">反転を2回して後に足す</h4>
+<div class="outline-text-4" id="text-5-2-4">
+<pre class="example">
+(nreverse (cons 'x (nreverse xxx)))
+
+[a . -&gt;] [b . -&gt;] [c . nil]
+[a . nil] [b . &lt;-] [c . &lt;-]
+[a . nil] [b . &lt;-] [c . &lt;-] [ x . &lt;-]
+[a . -&gt;] [b . -&gt;] [c . -&gt;] [ x . nil]
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: Yoshinari Nomura</p>
+<p class="email">Email: <a href="mailto:nom@quickhack.net">nom@quickhack.net</a></p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.5.50.2 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
+<p class="validation"></p>
+</div>
+</body>
+</html>

@@ -1,0 +1,32 @@
+#+TITLE: Emacs Lisp 関連資料
+#+SETUPFILE: options/default.org
+#+OPTIONS: num:1
+
+* 内容
+  詳細は， file:org/index.org を見てください．
+
+* ディレクトリ構成
+  + org/       ... project top
+    + *.org    ... org files (main contents)
+    + dat/     ... static attachments linked from *.org
+    + dyn/     ... dinamically generated files from *.org such as source code samples
+    + pub/     ... files needed on publishing by emacs
+      + css/   ... style sheets
+      + top/   ... top-level dot files like a .htaccess
+    + options/ ... org-mode options (not copied on publishing)
+  + html/      ... destination to publish. (don't touch by hand)
+
+* 資料の更新方法
+  + Emacs 関連のソフトウェアは cask をインストールして
+    : cask install
+
+  + org/ 以下を書換えて， make をたたくと html/ 以下に資料ができる
+
+* 必要なソフトウェア
+  1) Emacs 24 以上
+  2) Emacs のパッケージ管理として Cask 推奨
+  3) Org-mode 8.0 以上
+  4) ditaa (Ascii Art to png converter)
+     + Java
+  5) platex (TeX Live)
+  6) その他 UNIX ツール (GNU make など)

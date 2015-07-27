@@ -1,0 +1,548 @@
+#+TITLE: Emacs Lisp を書いてみたい人へ
+#+SETUPFILE: options/default.org
+#+OPTIONS: toc:nil num:1
+
+#+BEGIN_HTML
+  <script type="text/javascript">
+  <!--/*--><![CDATA[/*><!--*/
+  $(function() {
+    $("pre[id^=ans-]").each(function() {
+      var code = $(this);
+      var link = $('<a href="javascript:void(0);">toggle code</a>');
+      code.hide();
+      link.insertBefore(code);
+      link.on('click', function(e){code.toggle();});
+    });
+  });
+  /*]]>*///-->
+  </script>
+#+END_HTML
+
+* 準備 .emacs の設定をしよう
+** .emacs の例
+  [[file:dyn/init.el][init.el]]
+  #+name: ans-init
+  #+BEGIN_SRC emacs-lisp -n :tangle "dyn/init.el" :padline no
+    ;;; .emacs --- Emacs startup file.
+
+    ;; Author:  Yoshinari Nomura
+    ;; Created: 2010-01-14 13:59:02 JST
+    ;; Revised Time-stamp: <2015-07-26 23:33:24 JST>
+
+    ;;; Commentary:
+
+    ;;; Code:
+
+    ;;; For Debug
+
+    ;; M-x toggle-debug-on-error
+    ;; (setq debug-on-error t)
+
+    ;;; Disable Bi-Directional Display
+
+    (setq-default
+     bidi-display-reordering nil
+     bidi-paragraph-direction 'left-to-right)
+
+    ;;; Add Function(s) for Compatibility
+
+    (unless (fboundp 'with-eval-after-load)
+      (defmacro with-eval-after-load (file &rest body)
+        `(eval-after-load ,file
+           `(funcall (function ,(lambda () ,@body))))))
+
+    ;;; Basic Keybinds
+
+    ;; C-h is BS, C-d is DEL
+    (load-library "term/bobcat")
+    (terminal-init-bobcat)
+    (setq normal-erase-is-backspace nil)
+
+    ;; C-zh to help
+    (global-unset-key "\C-z")
+    (global-set-key "\C-zh" 'help)
+    (global-set-key "\C-z\C-z" 'suspend-emacs)
+
+    ;; SPC always acts as complation
+
+    ;; Space works as completion-key in minibuffer
+    (define-key minibuffer-local-filename-completion-map
+      " " 'minibuffer-complete-word)
+
+    ;;; Load Path and Directory Settings
+
+    (setenv "TEXINPUTS" (format "sty:%s/sys/lib/TeXsty:" (getenv "HOME")))
+
+    (defvar emacs-exec-path
+      '("~/sys/lib/elisp/mew/current/bin"
+        "~/sys/lib/elisp/migemo/bin"))
+
+    (defvar shell-exec-path
+      (split-string
+       (with-temp-buffer
+         (call-process
+          (getenv "SHELL") nil '(t nil) nil "-c" "echo -n $PATH")
+         (buffer-substring-no-properties (point-min) (point-max)))
+       ":"))
+
+    ;; set exec-path from shell-exec-path and emacs-exec-path
+    (dolist (ent (reverse (append emacs-exec-path shell-exec-path)))
+      (let ((dir (expand-file-name ent)))
+        (when (and (file-exists-p dir) (not (member dir exec-path)))
+          (setq exec-path (cons dir exec-path))
+          (setenv "PATH" (concat dir ":" (getenv "PATH"))))))
+
+    (defun hostname ()
+      "Short hostname."
+      (car (split-string (system-name) "\\.")))
+
+    ;;; Cask Package Manager
+
+    (require 'cask "~/.cask/cask.el")
+    (cask-initialize)
+
+    ;;; Enable Commands
+
+    (put 'downcase-region 'disabled nil)
+    (put 'upcase-region 'disabled nil)
+    (put 'narrow-to-page 'disabled nil)
+    (put 'narrow-to-region 'disabled nil)
+
+    ;;; Buffer-name Uniquify
+
+    (require 'uniquify)
+    (setq uniquify-buffer-name-style 'post-forward-angle-brackets)
+
+
+    ;;; search
+
+    (setq isearch-case-fold-search t)
+
+    ;;; global mode
+
+    (setq transient-mark-mode nil)
+
+    ;;; Emacs Server
+
+    (require 'server)
+    (unless (server-running-p)
+      (server-start))
+
+
+    ;;; eldoc
+
+    (add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
+    (add-hook 'lisp-interaction-mode-hook 'eldoc-mode)
+    (add-hook 'ielm-mode-hook 'eldoc-mode)
+    (add-hook 'eval-expression-minibuffer-setup-hook 'eldoc-mode)
+
+    ;;; Load individual init files
+
+    ;; Prepend all subdirectories of `default-directory' to `load-path'.
+
+    (let ((default-directory "~/sys/lib/elisp"))
+      (if (file-directory-p default-directory)
+          (setq load-path
+                (append
+                 (let ((load-path (copy-sequence load-path))) ;; Shadow
+                   (normal-top-level-add-subdirs-to-load-path))
+                 load-path))))
+
+    ;;; Load all files in `private-init-directory'.
+
+    (defvar private-init-directory
+      "~/sys/rc/elisp-init/"
+      "My private init directory.")
+
+    (defvar private-load-path-top "~/sys/lib/elisp/")
+
+    (defun private-load-path (relative-path)
+      "Calculate absolute path of RELATIVE-PATH from `private-load-path-top'."
+      (expand-file-name relative-path private-load-path-top))
+
+    (defun add-private-load-path (relative-path)
+      "Add RELATIVE-PATH to `load-path' as a relative path from `private-load-path-top'."
+      (setq load-path (cons (private-load-path relative-path) load-path)))
+
+    (mapc 'load (directory-files private-init-directory t "^[0-9].*.elc?$"))
+
+    ;;; Load Custom file
+
+    (setq custom-file
+          (expand-file-name
+           "XX-emacs-custom.el" private-init-directory))
+    (load custom-file)
+
+    ;;; Restore frame configuration
+
+    (if (fboundp 'load-frame-configuration)
+        (load-frame-configuration))
+
+    ;;; Done
+
+    (message "Done.")
+    (provide '.emacs)
+
+    ;;; Local Variables:
+    ;;; mode: emacs-lisp
+    ;;; time-stamp-active: t
+    ;;; End:
+    ;;; .emacs ends here
+
+  #+END_SRC
+
+** キーバインド
+    #+BEGIN_SRC emacs-lisp
+      ;; C-h is BS, C-d is DEL
+      (load-library "term/bobcat")
+      (terminal-init-bobcat)
+      (setq normal-erase-is-backspace nil)
+
+      ;; C-zh to help
+      (global-unset-key "\C-z")
+      (global-set-key "\C-zh" 'help)
+      (global-set-key "\C-z\C-z" 'suspend-emacs)
+    #+END_SRC
+
+** Emacs Server
+   #+BEGIN_SRC emacs-lisp
+     (require 'server)
+
+     (unless (server-running-p)
+       (server-start))
+   #+END_SRC
+
+** cask (package management)
+   + https://github.com/cask/cask
+   + http://cask.readthedocs.org
+
+   In your terminal:
+   #+BEGIN_SRC sh
+     curl -fsSL https://raw.githubusercontent.com/cask/cask/master/go | python
+   #+END_SRC
+
+   Add to your .zshenv:
+   #+BEGIN_SRC shell-script
+     path=(~/.cask/bin $path)
+   #+END_SRC
+
+   Add to your .emacs:
+   #+BEGIN_SRC emacs-lisp
+     (require 'cask "~/.cask/cask.el")
+     (cask-initialize)
+   #+END_SRC
+
+** ヘルプ関連
+   #+BEGIN_SRC emacs-lisp
+     (add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
+     (add-hook 'lisp-interaction-mode-hook 'eldoc-mode)
+     (add-hook 'ielm-mode-hook 'eldoc-mode)
+     (add-hook 'eval-expression-minibuffer-setup-hook 'eldoc-mode)
+     (define-key goto-map "f" 'find-function)
+   #+END_SRC
+
+** 便利そうな機能のおさらい
+   + M-x toggle-debug-on-error
+   + M-x apropos
+   + M-x find-function
+   + M-x describe-{bindings,function,variable,key}
+   + M-x kmacro-start-macro =C-x(=
+   + M-x kmacro-{start,end} =C-x(=, =C-x)=
+
+* Emacs Lisp 入門
+
+  この2つを参考に自学してください
+  1) [[http://yohshiy.blog.fc2.com/blog-entry-265.html][環境設定のための Emacs Lisp 入門]]
+  2) [[http://www.math.s.chiba-u.ac.jp/~matsu/lisp/emacs-lisp-intro-jp_toc.html][Programming in Emacs Lisp]]
+
+* Emacs Lisp で作る前に
+
+  1) 普通の Emacs の使い方をマスタしよう
+     + Emacs をある程度使いこなせないなら，Emacs Lisp を書く理由がない
+     + 標準機能の改良から初めよう (tetris のキーバインドが気に入らない)
+
+  2) チュートリアルを終えたら，我慢してマニュアルを一通り読もう
+     + http://www.gnu.org/software/emacs/manual/elisp.html
+     + http://www.bookshelf.jp/texi/elisp-manual/21-2-8/jp/elisp.html (邦訳)
+     目を通しておくだけで違う．週末の午後を2日ぐら使って一通り読むぐらいのイメージ
+
+  3) 何でも Emacs Lisp だけでやろうとしないでいいよ
+     + Shell script 書いた方が早くないですか?
+
+     + 他のプロセスやサービスのフロントエンドとして Emacs を使う
+       + ispell, flycheck, mew, mhc, jay, grammer.el
+
+     + コマンドラインから emacs server を叩く
+       : emacsclient -q -e 'emacs-major-version'
+
+  4) Emacs をむやみに終了しないようにするといいよ
+     + 起動に時間がかかる
+     + 各種履歴，mark位置，バッファ一覧，scratch等々が消えると面倒
+
+  6) buffer を1つの環境(スコープ，記憶領域，ワークスペース)として利用する
+     + ファイルに結び付かないバッファを利用する
+     + Emacs の挙動を変える変数は，buffer-local のスコープを持つことが多い
+       + 例: truncate-lines
+     + *モード* という考え方は，バッファ単位に結び付く
+     + 複雑な文字列操作などの場合に裏で一時的なバッファを開いてそこで作業する =with-temp-buffer=
+
+* 小さな elisp 関数の例
+** コード
+  [[file:dyn/my-funcs.el][my-funcs.el]]
+  #+name: ans-my-funcs
+  #+BEGIN_SRC emacs-lisp -n :tangle "dyn/my-funcs.el" :padline no
+    ;;; my-functions.el --- My private functions.
+
+    ;; Author:  Yoshinari Nomura
+    ;; Created: 2005-03-27
+
+    ;;; Commentary:
+
+    ;;; Code:
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; TODO, ADDRESS, MEMO
+
+    (defvar mydocument-path (expand-file-name "~/prj/private/"))
+
+    (defvar todo-file-name "org/TODO.org")
+    (defvar memo-file-name "MEMO.org")
+    (defvar address-file-name "ADDRESS.org")
+
+    (defun find-mydoc-file-other-window (filename)
+      (find-file-other-window
+       (concat mydocument-path filename))
+      (message ""))
+
+    (defun todo ()
+      (interactive)
+      (find-mydoc-file-other-window todo-file-name))
+
+    (defun address ()
+      (interactive)
+      (find-mydoc-file-other-window address-file-name))
+
+    (defun memo ()
+      (interactive)
+      (find-mydoc-file-other-window memo-file-name))
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;; Numbering
+
+    (defvar numbering-default-string "^[\t 　]*(\\( *[0-9]+\\))")
+
+    (defun numbering (&optional arg)
+      (interactive)
+      (let ((n 1))
+        (save-excursion
+          (setq numbering-default-string
+                (read-from-minibuffer (format "Numbering format (%s):"
+                                              numbering-default-string)
+                                      numbering-default-string))
+          (goto-char (point-min))
+          (while (re-search-forward numbering-default-string nil t)
+            (replace-match (format "%02d" n) nil nil nil 1)
+            (setq n (1+ n)))
+          )))
+
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;; Sum up numbers in a string, region or rectangle.
+
+    (defun sum-string (string)
+      (let ((str "") (sum 0))
+        (mapc
+         (lambda (c)
+           (cond
+            ((char-equal c ?,)) ;; skip comma
+            ((string-match "[0-9.+-]" (char-to-string c))
+             (setq str (format "%s%c" str c)))
+            (t (setq sum (+ sum (string-to-number str)) str ""))))
+         (concat string "X"))
+        sum))
+
+    (defvar sum-money-regexp "\\([0-9,]+\\)円")
+
+    (defun sum-string-to-int (string)
+      (sum-string string))
+
+    (defun sum-money-in-region (p1 p2)
+      (interactive "r")
+      (let ((sum 0))
+        (save-excursion
+          (goto-char p1)
+          (save-match-data
+            (while (re-search-forward sum-money-regexp p2 t)
+              (setq sum (+ sum (sum-string-to-int (match-string 1)))))))
+        (insert (format "[合計: %d]" sum))))
+
+    (defun sum-region (p1 p2)
+      (interactive "r")
+      (insert (format "[合計: %d]" (sum-string (buffer-substring p1 p2)))))
+
+    (defun sum-rectangle (p1 p2)
+      (interactive "r")
+      (let ((sum 0) (rect (extract-rectangle p1 p2)))
+        (mapc (lambda (s) (setq sum (+ sum (sum-string s)))) rect)
+        (insert (format "[合計: %d]" sum))))
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;; Time and Date.
+
+    (defun make-timetable (&optional duration-minutes interval-minutes)
+      (interactive)
+      (let ((time-start nil) (time-end nil) hh mm)
+        (setq duration-minutes
+              (or duration-minutes
+                  (string-to-number (read-from-minibuffer "Frequency (minute): "))))
+        (setq interval-minutes
+              (or interval-minutes
+                  (string-to-number (read-from-minibuffer "Interval (minute): "))))
+
+        (while (looking-at "\\([0-9]+\\):\\([0-9]+\\)\\( *- *[0-9]+:[0-9]+\\)?")
+          (setq hh (string-to-number
+                    (buffer-substring (match-beginning 1) (match-end 1)))
+                mm (string-to-number
+                    (buffer-substring (match-beginning 2) (match-end 2))))
+          (delete-region (match-beginning 0) (match-end 0))
+
+          (setq time-start
+                (if time-start
+                    (+ time-start duration-minutes interval-minutes)
+                  (+ (* hh 60) mm)))
+          (setq time-end (+ time-start duration-minutes))
+          (save-excursion
+            (insert (format "%02d:%02d-%02d:%02d"
+                            (/ time-start 60) (% time-start 60)
+                            (/ time-end 60) (% time-end 60))))
+          (next-line 1))))
+
+    ;;; Local Variables:
+    ;;; mode: emacs-lisp
+    ;;; End:
+  #+END_SRC
+
+
+** todo, address, memo
+   特定のディレクトリにある特定のファイルを開くだけの単純な関数である．
+   常に書き足したり参照するファイルがあり，find-file するのが面倒な場合に重宝する．
+   path を制御する変数は以下の通り:
+
+   + mydocument-path :: 一連のファイルを置いてあるディレクトリ．デフォルトは "~/prj/private/"
+   + todo-file-name, memo-file-name, address-file-name :: それぞれのファイル名．デフォルトは、"TODO", "MEMO", "ADDRESS"
+
+** sum-rectangle, sum-region
+   あるリージョンに入っている数の合計を計算して，バッファに挿入する関数．
+
+   #+BEGIN_EXAMPLE
+     リンゴ  100
+     スイカ  200
+     ミカン  300
+   #+END_EXAMPLE
+
+   のようなバッファで、1 の所にマークを付けて，300 の後ろにポインタを置く．
+   そこで， =M-x sum-rectangle= を実行すると，[合計: 600] を挿入する．
+   =sum-region= は，矩形ではなく，リージョンについて，同様の事を行う．
+
+** make-timetable
+   発表会の準備をする場合，時間を計算しながらタイムテーブルを書くことがよくある．
+   たとえば，以下のようなテーブルである．
+
+   #+BEGIN_EXAMPLE
+     14:00-14:40 発表1 (D1)
+     14:40-15:20 発表2 (D1)
+
+     15:20-15:45 発表3 (M2)
+     15:45-16:10 発表4 (M2)
+     16:10-16:35 発表5 (M2)
+     16:35-17:00 発表6 (M2)
+   #+END_EXAMPLE
+
+    人数や順番の変更，1人当りの時間が変更されると，再度計算が必要になる．
+    これは，面倒なだけでなく，間違いが発生する原因になる．
+
+    M2 の持ち時間が、20分に変更になったとしよう．
+    *15:20* の *1* の上にポインタを置いて， =M-x make-timetable= を叩く．
+    =Frequency:= と =Interval:= 聞かれるので，20 と 0 と答えると， M2 の時間が
+
+    #+BEGIN_EXAMPLE
+      15:20-15:40 発表3 (M2)
+      15:40-16:00 発表4 (M2)
+      16:00-16:20 発表5 (M2)
+      16:20-16:40 発表6 (M2)
+    #+END_EXAMPLE
+
+    のように書換えられる．開始時間を変えたければ，
+    15:20 をあらかじめ書換えておけばいい．Interval を指定すると，発表間にその分のギャップを入れられる．
+
+    最初にテーブルを作るときは，開始時間だけ埋めて，あとは 00:00 とでもしておけばよい．
+    上の例では，「D1」の後に空行を挿入してある．
+    これは，D1の時間だけを書換えたいのに M2 まで変わってしまわないようにするためである．
+
+* (番外) セルの話
+** (cons 'a 'b) と (cons 'a '(b)) の違いは何か
+
+   =[ptr1 . ptr2]= の形をセルという． =(cons x y)= とは，新たなセルを1つ作って， =ptr1= を =x= に =ptr2= を =y= に向けること．
+
+   #+BEGIN_EXAMPLE
+     1. (cons 'a 'b):    [ptr1 . ptr2] -> b
+                           |
+                           a
+
+
+     2. (cons 'a '(b)):  [ptr1 . ptr2] -> [pt1 . ptr2] -> nil
+                           |                |
+                           a                b
+
+     3. '(b):            [ptr1 . ptr2] -> nil
+                           |
+                           b
+   #+END_EXAMPLE
+
+   1 は単に 2つをオブジェクトを格納する二股ポインタ． =(a . b)= と表記する．
+   2 はリスト構造を持っている． =(a b)= と表記する．
+   =ptr1= の指すオブジェクトを =car=, =ptr2= の指すオブジェクト cdr と呼ぶ．
+   =ptr= が指す先がセルでないとき，たとえば =x= や =1= のようなとき，=ptr1= は，atom であるという．
+
+** セルの操作の図解
+*** 前に足す
+    #+BEGIN_EXAMPLE
+       (setq xxx '(a b c))
+       (setq yyy (cons 'x xxx)) ;; セルを1つ足して cdr を xxx に
+
+       このときのオブジェクトの様子:
+                      xxx
+                       |
+                       v
+       yyy -> [x . ->] [a . ->] [b . ->] [c . nil]
+
+       注意: cons cell 中に直接 x が入っているように略記している．
+    #+END_EXAMPLE
+
+*** 途中をいじる
+    #+BEGIN_EXAMPLE
+       (setcar (nthcdr 2 xxx) 'x)  ;; xxxリストの2番目のcarをxに変える
+
+       xxx -> [a . ->] [b . ->] [x . nil]
+                 0        1        2
+    #+END_EXAMPLE
+
+*** 後に足す
+
+    #+BEGIN_EXAMPLE
+      (setcdr (nthcdr 2 xxx) (cons 'y nil)) ;; セルを1つ足して2のcdrを
+                                            ;; それに向ける
+
+      xxx -> [a . ->] [b . ->] [c . ->] [y . nil]
+                0        1        2
+    #+END_EXAMPLE
+
+*** 反転を2回して後に足す
+    #+BEGIN_EXAMPLE
+      (nreverse (cons 'x (nreverse xxx)))
+
+      [a . ->] [b . ->] [c . nil]
+      [a . nil] [b . <-] [c . <-]
+      [a . nil] [b . <-] [c . <-] [ x . <-]
+      [a . ->] [b . ->] [c . ->] [ x . nil]
+    #+END_EXAMPLE
